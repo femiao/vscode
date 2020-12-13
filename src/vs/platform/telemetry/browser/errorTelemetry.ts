@@ -5,7 +5,7 @@
 
 import { toDisposable } from 'vs/base/common/lifecycle';
 import { globals } from 'vs/base/common/platform';
-import BaseErrorTelemetry, { ErrorEvent } from '../common/errorTelemetry';
+import BaseErrorTelemetry, { ErrorEvent } from 'vs/platform/telemetry/common/errorTelemetry';
 
 export default class ErrorTelemetry extends BaseErrorTelemetry {
 	protected installErrorListeners(): void {
@@ -20,7 +20,7 @@ export default class ErrorTelemetry extends BaseErrorTelemetry {
 				oldOnError.apply(this, arguments);
 			}
 		};
-		this._disposables.push(toDisposable(function () {
+		this._disposables.add(toDisposable(() => {
 			if (oldOnError) {
 				globals.onerror = oldOnError;
 			}

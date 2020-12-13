@@ -15,6 +15,8 @@ import { ViewLineRenderingData } from 'vs/editor/common/viewModel/viewModel';
 import { IStandaloneThemeService } from 'vs/editor/standalone/common/standaloneThemeService';
 import { MonarchTokenizer } from 'vs/editor/standalone/common/monarch/monarchLexer';
 
+const ttPolicy = window.trustedTypes?.createPolicy('standaloneColorizer', { createHTML: value => value });
+
 export interface IColorizerOptions {
 	tabSize?: number;
 }
@@ -40,7 +42,8 @@ export class Colorizer {
 		let text = domNode.firstChild ? domNode.firstChild.nodeValue : '';
 		domNode.className += ' ' + theme;
 		let render = (str: string) => {
-			domNode.innerHTML = str;
+			const trustedhtml = ttPolicy?.createHTML(str) ?? str;
+			domNode.innerHTML = trustedhtml as string;
 		};
 		return this.colorize(modeService, text || '', mimeType, options).then(render, (err) => console.error(err));
 	}
@@ -54,7 +57,7 @@ export class Colorizer {
 		if (strings.startsWithUTF8BOM(text)) {
 			text = text.substr(1);
 		}
-		let lines = text.split(/\r\n|\r|\n/);
+		let lines = strings.splitLines(text);
 		let language = modeService.getModeId(mimeType);
 		if (!language) {
 			return Promise.resolve(_fakeColorize(lines, tabSize));
@@ -125,10 +128,14 @@ export class Colorizer {
 			[],
 			tabSize,
 			0,
+			0,
+			0,
+			0,
 			-1,
 			'none',
 			false,
-			false
+			false,
+			null
 		));
 		return renderResult.html;
 	}
@@ -192,10 +199,14 @@ function _fakeColorize(lines: string[], tabSize: number): string {
 			[],
 			tabSize,
 			0,
+			0,
+			0,
+			0,
 			-1,
 			'none',
 			false,
-			false
+			false,
+			null
 		));
 
 		html = html.concat(renderResult.html);
@@ -228,10 +239,14 @@ function _actualColorize(lines: string[], tabSize: number, tokenizationSupport: 
 			[],
 			tabSize,
 			0,
+			0,
+			0,
+			0,
 			-1,
 			'none',
 			false,
-			false
+			false,
+			null
 		));
 
 		html = html.concat(renderResult.html);
